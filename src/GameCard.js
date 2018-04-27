@@ -158,4 +158,3 @@ export default class GameCard extends Component {
     );
   }
 }
-

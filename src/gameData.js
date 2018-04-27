@@ -1,6 +1,7 @@
 import ChatRoom from './ChatRoom.js';
 import TicTacToe from './TicTacToe.js';
 import RockPaperScissors from './RockPaperScissors.js';
+import Draw from './Draw.js';
 
 const gameData = {
 
@@ -30,7 +31,15 @@ const gameData = {
     maxUsers: 2,
     component: RockPaperScissors,
   },
-
+  
+  draw: {
+    title: "Draw",
+    authors: "Team Awesome",
+    description: "Drawing Game",
+    minUsers: 1,
+    maxUsers: 10,
+    component: Draw,
+  },
 
 }
 

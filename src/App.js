@@ -1,4 +1,4 @@
-import CircularProgress from 'material-ui/CircularProgress';
+
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import Header from './Header.js'
 import Paper from 'material-ui/Paper';
@@ -85,7 +85,6 @@ export default class App extends Component {
       return (
         <center>
           <Paper style={buttonStyle} circle={true}>
-            <CircularProgress size={56} />
           </Paper>
         </center>
       );
