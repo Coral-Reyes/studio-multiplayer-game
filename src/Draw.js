@@ -6,9 +6,10 @@ import React, {Component} from 'react';
 // import firebase from 'firebase';
 import WhoseOnline from './WhoseOnline.js';
 // import './Data.css';
+import randomWords from 'random-words';
 
 export default class Draw extends Component {
- 
+
  constructor(props) {
     super(props);
     this.state = 
@@ -17,11 +18,19 @@ export default class Draw extends Component {
       currX: 0,
       prevY: 0,
       currY: 0,
+      randomWord: ""
     };
+    console.log(randomWords());
     
  }
  componentDidUpdate() {
        this.draw();
+ }
+
+ genWord(){
+  this.setState({
+   randomWord: randomWords()
+  }); 
  }
 
  draw() {
@@ -57,6 +66,8 @@ export default class Draw extends Component {
     return (
      <div>
         <h1>hello</h1>
+        <button onClick={this.genWord.bind(this)}>New Word</button>
+        <p>{this.state.randomWord}</p>
         <div id="canvas">
          <canvas ref="canvas" onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400" style={{position: "absolute", top: "10%", left: "50%", border:"2px solid"}}></canvas>
         </div>
