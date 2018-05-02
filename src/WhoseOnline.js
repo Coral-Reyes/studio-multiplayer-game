@@ -19,15 +19,17 @@ export default class WhoseOnline extends Component {
   }
   
   componentWillMount() {
-    var id = this.props.match.params.id;
+    var id = this.props.session;
     var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
     var usersId = sessionDatabaseRef.child("users");
+    console.log(usersId);
     const arrayOfAllUsersName = usersId.map(x => {
       return {
         name: UserApi.getName(x),
         img: UserApi.getPhotoUrl(x)
       }
     })
+    
     this.setState({
       peopleName: arrayOfAllUsersName
     });

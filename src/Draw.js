@@ -65,14 +65,14 @@ export default class Draw extends Component {
  render() {
     return (
      <div>
-        <h1>hello</h1>
+        <h1>Draw</h1>
         <button onClick={this.genWord.bind(this)}>New Word</button>
         <p>{this.state.randomWord}</p>
         <div id="canvas">
          <canvas ref="canvas" onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400" style={{position: "absolute", top: "10%", left: "50%", border:"2px solid"}}></canvas>
         </div>
         <div id="online">
-         <WhoseOnline/>
+         <WhoseOnline session={this.props.match.params.id}/>
          </div>
      </div>
     
