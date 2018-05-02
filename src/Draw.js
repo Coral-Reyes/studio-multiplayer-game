@@ -10,6 +10,7 @@ import randomWords from 'random-words';
 
 export default class Draw extends Component {
 
+
  constructor(props) {
     super(props);
     this.state = 
@@ -51,6 +52,7 @@ export default class Draw extends Component {
        ctx.stroke();
        ctx.closePath();
  }
+ 
 
  onMouseMoved(e){
    e.stopPropagation();
@@ -73,6 +75,7 @@ export default class Draw extends Component {
         </div>
         <div id="online">
          <WhoseOnline session={this.props.match.params.id}/>
+         <input type="text"/>
          </div>
      </div>
     
