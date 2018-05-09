@@ -46,6 +46,12 @@ export default class Draw extends Component {
         peopleNames: arrayOfAllUsersName
       });
     })
+    sessionDatabaseRef.child("words").on("value", (snapshot) => {
+      var storage = snapshot.val(); 
+      this.setState({
+       randomWord: storage
+      });       
+    })
   }  
  
  componentDidUpdate() {
@@ -62,10 +68,7 @@ export default class Draw extends Component {
   var words = randomWords();
   var id = this.props.match.params.id;
   var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
-  sessionDatabaseRef.set({words: words});
-  this.setState({
-   randomWord: words
-  }); 
+  sessionDatabaseRef.update({words: words});
  }
  
 
@@ -78,9 +81,7 @@ export default class Draw extends Component {
  
  wins(){
   if (this.state.inputvalue === this.state.randomWord) {
-     this.setState({
-      randomWord: randomWords()
-     }); 
+     this.genWord(); 
   } else {
      this.setState({
       repeat: "False"
