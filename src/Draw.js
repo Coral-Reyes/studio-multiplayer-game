@@ -7,6 +7,7 @@ import firebase from 'firebase';
 import WhoseOnline from './WhoseOnline.js';
 // import './Data.css';
 import randomWords from 'random-words';
+import './Draw.css'
 
 export default class Draw extends Component {
 
@@ -24,7 +25,8 @@ export default class Draw extends Component {
       repeat: "",
       drawer: "",
       peopleNames: [],
-      color: "#000"
+      color: "#000",
+      // canvasimg: "",
     };
     // console.log(randomWords());
     
@@ -52,11 +54,46 @@ export default class Draw extends Component {
        randomWord: storage
       });       
     })
+     sessionDatabaseRef.child("img").on("value", (snapshot) => {
+      var storage = snapshot.val(); 
+      const canvas = this.refs.canvas;
+      const ctx = canvas.getContext('2d');
+      var imgData = new Image();
+      imgData.src = storage;
+      // console.log(storage);
+      // var clampedArrayImageData = new Uint8ClampedArray(storage.data)
+      // var imgData = new ImageData(clampedArrayImageData,400,400);
+      ctx.drawImage(imgData,0,0); 
+    })
   }  
  
  componentDidUpdate() {
        this.draw();
  }
+ 
+
+ 
+canvasSave() {
+       const canvas = this.refs.canvas;
+       const ctx = canvas.getContext('2d');
+       var imgData = canvas.toDataURL();
+       var id = this.props.match.params.id;
+       var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
+       sessionDatabaseRef.update({img: imgData});
+       // console.log(imgData);
+  // var img = sessionDatabaseRef.child("img");
+  // console.log(img);
+}
+ 
+ // pasteCanvas() {
+ //  const canvas = this.refs.canvas;
+ //  const ctx = canvas.getContext('2d');
+ //  var id = this.props.match.params.id;
+ //  var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
+ //  var img = sessionDatabaseRef.child("img");
+ //  console.log(img);
+ //  ctx.putImageData(img.data,0,0);
+ // }
  
  firstDrawer() {
    this.setState({
@@ -81,7 +118,11 @@ export default class Draw extends Component {
  
  wins(){
   if (this.state.inputvalue === this.state.randomWord) {
-     this.genWord(); 
+     this.genWord();
+     const canvas = this.refs.canvas;
+     const ctx = canvas.getContext('2d');
+     ctx.clearRect(0,0,400,400);
+     this.canvasSave();
   } else {
      this.setState({
       repeat: "False"
@@ -92,9 +133,9 @@ export default class Draw extends Component {
  draw() {
        // console.log(this.state.prevX, this.state.prevY)
        // console.log(this.state.currX, this.state.currY)
-       const canvas = this.refs.canvas
+       const canvas = this.refs.canvas;
        const ctx = canvas.getContext('2d');
-       console.log(canvas.getBoundingClientRect());
+       // console.log(canvas.getBoundingClientRect());
        ctx.beginPath();
        ctx.arc(
         this.state.currX - canvas.getBoundingClientRect().left,
@@ -107,10 +148,8 @@ export default class Draw extends Component {
        ctx.lineWidth = 2;
        ctx.stroke();
        ctx.closePath();
-       
  }
- 
- 
+
 
 onMouseMoved(e){
     e.stopPropagation();
@@ -134,14 +173,17 @@ getRandomColor(){
  
  render() {
     return (
-     <div>
+     <div class="site">
         <h1>Draw</h1>
         <button onClick={this.genWord.bind(this)}>New Word</button>
         <p>{this.state.randomWord}</p>
         <button onClick={this.getRandomColor.bind(this)}> Change Color </button>
         <div id="canvas">
          <canvas ref="canvas" onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400" style={{position: "absolute", top: "10%", left: "50%", border:"2px solid"}}></canvas>
+         <button onClick={this.canvasSave.bind(this)}> Copy Img </button>
+         {/*<button onClick={this.pasteCanvas.bind(this)}> Change Img </button>*/}
         </div>
+        
         <div id="online">
          <WhoseOnline peopleNames={this.state.peopleNames} session={this.props.match.params.id}/>
          <input type="text" id="guess" onChange={this.getInputValue.bind(this)}/>
