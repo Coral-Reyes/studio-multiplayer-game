@@ -26,7 +26,7 @@ export default class Draw extends Component {
       drawer: "",
       peopleNames: [],
       color: "#000",
-      // canvasimg: "",
+       canvasimg: "",
     };
     // console.log(randomWords());
     
@@ -35,6 +35,7 @@ export default class Draw extends Component {
   componentWillMount() {
     var id = this.props.match.params.id;
     var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
+    var sessionStorageRef = firebase.storage().ref("/session-metadata/" + id);
     var usersId = sessionDatabaseRef.child("users");
     usersId.on("value", (snapshot) => {
       var container = snapshot.val();
@@ -54,46 +55,84 @@ export default class Draw extends Component {
        randomWord: storage
       });       
     })
-     sessionDatabaseRef.child("img").on("value", (snapshot) => {
-      var storage = snapshot.val(); 
-      const canvas = this.refs.canvas;
-      const ctx = canvas.getContext('2d');
-      var imgData = new Image();
-      imgData.src = storage;
-      // console.log(storage);
-      // var clampedArrayImageData = new Uint8ClampedArray(storage.data)
-      // var imgData = new ImageData(clampedArrayImageData,400,400);
-      ctx.drawImage(imgData,0,0); 
-    })
+    // sessionDatabaseRef.child("img").on("value", (snapshot) => {
+    //   var storage = snapshot.val(); 
+    //   const canvas = this.refs.canvas;
+    //   const ctx = canvas.getContext('2d');
+    //   var imgData = new Image();
+    //   imgData.src = storage;
+    //   // console.log(storage);
+    //   // var clampedArrayImageData = new Uint8ClampedArray(storage.data)
+    //   // var imgData = new ImageData(clampedArrayImageData,400,400);
+    //   ctx.drawImage(imgData,0,0); 
+    // })
+    
+    
+    // sessionDatabaseRef.child("img").on("value", (snapshot) => {
+    //     var container = "";
+    //   sessionStorageRef.getDownloadURL().then(function(url) {
+    //     container = url;
+    //       console.log(url);
+    //   });
+    //     this.setState({
+    //         canvasimg: container
+    //     });
+      
+    // });
+    
+    
+    
   }  
  
+ componentDidUnmount(){
+        var id = this.props.match.params.id;
+        var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
+        var sessionStorageRef = firebase.storage().ref("/session-metadata/" + id);
+        sessionDatabaseRef.child("img").on("value", (snapshot) => {
+        const canvas = this.refs.canvas; 
+        var ctx = canvas.getContext('2d');
+        var img = new Image();
+        img.crossOrigin = "Anonymous";
+        sessionStorageRef.getDownloadURL().then(function(url) {
+            // const canvas = this.refs.canvas;
+            img.src = (url);
+        });
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+        };
+    });
+ }
+ 
  componentDidUpdate() {
-       this.draw();
+   console.log(this.state.mouseDown)
+    if(this.state.mouseDown) {
+        this.draw();
+    }
  }
  
 
  
 canvasSave() {
-       const canvas = this.refs.canvas;
-       const ctx = canvas.getContext('2d');
-       var imgData = canvas.toDataURL();
-       var id = this.props.match.params.id;
-       var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
-       sessionDatabaseRef.update({img: imgData});
-       // console.log(imgData);
-  // var img = sessionDatabaseRef.child("img");
-  // console.log(img);
+        const canvas = this.refs.canvas;
+        // const ctx = canvas.getContext('2d');
+        var imgData = canvas.toDataURL();
+        console.log(imgData);
+        var id = this.props.match.params.id;
+        var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
+        var sessionStorageRef = firebase.storage().ref("/session-metadata/" + id);
+        sessionStorageRef.putString(imgData, 'data_url').then(function(snapshot) {
+            console.log('Uploaded a data_url string!');
+            sessionDatabaseRef.child("img").set(true);
+        });
 }
  
- // pasteCanvas() {
- //  const canvas = this.refs.canvas;
- //  const ctx = canvas.getContext('2d');
- //  var id = this.props.match.params.id;
- //  var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
- //  var img = sessionDatabaseRef.child("img");
- //  console.log(img);
- //  ctx.putImageData(img.data,0,0);
- // }
+//   pasteCanvas() {
+//   const canvas = this.refs.canvas;
+//   const ctx = canvas.getContext('2d');
+//   var img = this.state.canvasimg;
+//   console.log(img);
+//   ctx.putImageData(img,0,0);
+//   }
  
  firstDrawer() {
    this.setState({
@@ -123,6 +162,7 @@ canvasSave() {
      const ctx = canvas.getContext('2d');
      ctx.clearRect(0,0,400,400);
      this.canvasSave();
+     // this.canvasSave();
   } else {
      this.setState({
       repeat: "False"
@@ -131,35 +171,49 @@ canvasSave() {
  }
 
  draw() {
-       // console.log(this.state.prevX, this.state.prevY)
-       // console.log(this.state.currX, this.state.currY)
        const canvas = this.refs.canvas;
        const ctx = canvas.getContext('2d');
-       // console.log(canvas.getBoundingClientRect());
        ctx.beginPath();
        ctx.arc(
-        this.state.currX - canvas.getBoundingClientRect().left,
-        this.state.currY - canvas.getBoundingClientRect().top*3,
+        this.state.currX - canvas.offsetLeft - 60,
+        this.state.currY - (canvas.offsetTop + 40),
         5, 0,
         Math.PI * 2, 
         true
        );
-       ctx.strokeStyle= this.state.color;
        ctx.lineWidth = 2;
+       ctx.strokeStyle= this.state.color;
+       ctx.fillStyle = this.state.color; 
+       ctx.fill();
        ctx.stroke();
        ctx.closePath();
  }
 
 
 onMouseMoved(e){
-    e.stopPropagation();
+   e.stopPropagation();
    this.setState({
-      prevX: this.state.currX,
       currX: e.screenX,
-      prevY: this.state.currX,
-     currY: e.screenY + 35,
-    });
+      currY: e.screenY,
+   });
 }
+
+onMouseDown(e){
+   e.stopPropagation();
+   this.setState({
+      mouseDown: true
+    });
+   console.log(this.state.mouseDown)
+}
+
+onMouseUp(e){
+   e.stopPropagation();
+   this.setState({
+      mouseDown:false
+    });
+   console.log(this.state.mouseDown)
+}
+
 getRandomColor(){
    var letters= "0123456789ABCDEF"
    var color = "#"
@@ -173,13 +227,13 @@ getRandomColor(){
  
  render() {
     return (
-     <div class="site">
+     <div className="site">
         <h1>Draw</h1>
         <button onClick={this.genWord.bind(this)}>New Word</button>
         <p>{this.state.randomWord}</p>
         <button onClick={this.getRandomColor.bind(this)}> Change Color </button>
         <div id="canvas">
-         <canvas ref="canvas" onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400" style={{position: "absolute", top: "10%", left: "50%", border:"2px solid"}}></canvas>
+         <canvas ref="canvas" onMouseDown={this.onMouseDown.bind(this)} onMouseUp={this.onMouseUp.bind(this)} onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400" style={{position: "absolute", top: "10%", left: "50%", border:"2px solid"}}></canvas>
          <button onClick={this.canvasSave.bind(this)}> Copy Img </button>
          {/*<button onClick={this.pasteCanvas.bind(this)}> Change Img </button>*/}
         </div>
