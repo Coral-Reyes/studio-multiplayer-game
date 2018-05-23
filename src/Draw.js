@@ -7,7 +7,7 @@ import firebase from 'firebase';
 import WhoseOnline from './WhoseOnline.js';
 // import './Data.css';
 import randomWords from 'random-words';
-import './Draw.css'
+import './Draw.css';
 
 export default class Draw extends Component {
 
@@ -35,7 +35,7 @@ export default class Draw extends Component {
   componentWillMount() {
     var id = this.props.match.params.id;
     var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
-    var sessionStorageRef = firebase.storage().ref("/session-metadata/" + id);
+    // var sessionStorageRef = firebase.storage().ref("/session-metadata/" + id);
     var usersId = sessionDatabaseRef.child("users");
     usersId.on("value", (snapshot) => {
       var container = snapshot.val();
@@ -43,31 +43,19 @@ export default class Draw extends Component {
         return {
           name: UserApi.getName(x),
           img: UserApi.getPhotoUrl(x)
-        }
-      })
+        };
+      });
       this.setState({
         peopleNames: arrayOfAllUsersName
       });
-    })
+    });
     sessionDatabaseRef.child("words").on("value", (snapshot) => {
       var storage = snapshot.val(); 
       this.setState({
        randomWord: storage
       });       
-    })
-    // sessionDatabaseRef.child("img").on("value", (snapshot) => {
-    //   var storage = snapshot.val(); 
-    //   const canvas = this.refs.canvas;
-    //   const ctx = canvas.getContext('2d');
-    //   var imgData = new Image();
-    //   imgData.src = storage;
-    //   // console.log(storage);
-    //   // var clampedArrayImageData = new Uint8ClampedArray(storage.data)
-    //   // var imgData = new ImageData(clampedArrayImageData,400,400);
-    //   ctx.drawImage(imgData,0,0); 
-    // })
-    
-    
+    });
+
     // sessionDatabaseRef.child("img").on("value", (snapshot) => {
     //     var container = "";
     //   sessionStorageRef.getDownloadURL().then(function(url) {
@@ -84,27 +72,28 @@ export default class Draw extends Component {
     
   }  
  
- componentDidUnmount(){
+ componentDidMount(){
         var id = this.props.match.params.id;
         var sessionDatabaseRef = firebase.database().ref("/session-metadata/" + id);
         var sessionStorageRef = firebase.storage().ref("/session-metadata/" + id);
         sessionDatabaseRef.child("img").on("value", (snapshot) => {
-        const canvas = this.refs.canvas; 
-        var ctx = canvas.getContext('2d');
-        var img = new Image();
-        img.crossOrigin = "Anonymous";
-        sessionStorageRef.getDownloadURL().then(function(url) {
-            // const canvas = this.refs.canvas;
-            img.src = (url);
+            const canvas = this.refs.canvas; 
+            var ctx = canvas.getContext('2d');
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+            sessionStorageRef.getDownloadURL().then(function(url) {
+                // const canvas = this.refs.canvas;
+                img.src = (url);
+            });
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+            };
         });
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0);
-        };
-    });
  }
  
+ 
  componentDidUpdate() {
-   console.log(this.state.mouseDown)
+   console.log(this.state.mouseDown);
     if(this.state.mouseDown) {
         this.draw();
     }
@@ -123,6 +112,7 @@ canvasSave() {
         sessionStorageRef.putString(imgData, 'data_url').then(function(snapshot) {
             console.log('Uploaded a data_url string!');
             sessionDatabaseRef.child("img").set(true);
+            sessionDatabaseRef.child("img").set(false); 
         });
 }
  
@@ -147,6 +137,16 @@ canvasSave() {
   sessionDatabaseRef.update({words: words});
  }
  
+ resetCanvas(){
+    const canvas = this.refs.canvas;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,400,400);
+ }
+
+resetAndSave(){
+    this.resetCanvas();
+    this.canvasSave();
+}
 
  getInputValue(){
   var x = document.getElementById("guess").value;
@@ -157,11 +157,9 @@ canvasSave() {
  
  wins(){
   if (this.state.inputvalue === this.state.randomWord) {
-     this.genWord();
-     const canvas = this.refs.canvas;
-     const ctx = canvas.getContext('2d');
-     ctx.clearRect(0,0,400,400);
-     this.canvasSave();
+    this.genWord();
+    this.resetAndSave();
+    
      // this.canvasSave();
   } else {
      this.setState({
@@ -175,8 +173,8 @@ canvasSave() {
        const ctx = canvas.getContext('2d');
        ctx.beginPath();
        ctx.arc(
-        this.state.currX - canvas.offsetLeft - 60,
-        this.state.currY - (canvas.offsetTop + 40),
+        this.state.currX - canvas.offsetLeft - 1,
+        this.state.currY - (canvas.offsetTop + 60),
         5, 0,
         Math.PI * 2, 
         true
@@ -203,7 +201,7 @@ onMouseDown(e){
    this.setState({
       mouseDown: true
     });
-   console.log(this.state.mouseDown)
+   console.log(this.state.mouseDown);
 }
 
 onMouseUp(e){
@@ -211,41 +209,44 @@ onMouseUp(e){
    this.setState({
       mouseDown:false
     });
-   console.log(this.state.mouseDown)
+   console.log(this.state.mouseDown);
 }
 
 getRandomColor(){
-   var letters= "0123456789ABCDEF"
-   var color = "#"
+   var letters= "0123456789ABCDEF";
+   var color = "#";
    for (var i = 0; i < 6; i++ ) {
         color += letters[Math.floor(Math.random() * 16)];
     }
     this.setState({
      color: color
-    })
+    });
  }
  
  render() {
     return (
+    
      <div className="site">
-        <h1>Draw</h1>
+        <div id="online">
         <button onClick={this.genWord.bind(this)}>New Word</button>
         <p>{this.state.randomWord}</p>
-        <button onClick={this.getRandomColor.bind(this)}> Change Color </button>
+        <input type="text" id="guess" onChange={this.getInputValue.bind(this)}/>
+         <p>{this.state.inputvalue}</p>
+        <button onClick={this.wins.bind(this)}>Compare Answers</button>
+         <p>{this.state.repeat}</p>
+         <WhoseOnline id="names" peopleNames={this.state.peopleNames} session={this.props.match.params.id}/>
+        </div>
         <div id="canvas">
-         <canvas ref="canvas" onMouseDown={this.onMouseDown.bind(this)} onMouseUp={this.onMouseUp.bind(this)} onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400" style={{position: "absolute", top: "10%", left: "50%", border:"2px solid"}}></canvas>
-         <button onClick={this.canvasSave.bind(this)}> Copy Img </button>
+         <canvas ref="canvas" onMouseDown={this.onMouseDown.bind(this)} onMouseUp={this.onMouseUp.bind(this)} onMouseMove={this.onMouseMoved.bind(this)} id="can" width="400" height="400"></canvas>
+         <div className="button">
+         <button onClick={this.getRandomColor.bind(this)}> Change Color </button>
+         <button onClick={this.canvasSave.bind(this)}> Copy & Send </button>
+         <button onClick={this.resetAndSave.bind(this)}> Reset Canvas </button>
+         </div>
          {/*<button onClick={this.pasteCanvas.bind(this)}> Change Img </button>*/}
         </div>
-        
-        <div id="online">
-         <WhoseOnline peopleNames={this.state.peopleNames} session={this.props.match.params.id}/>
-         <input type="text" id="guess" onChange={this.getInputValue.bind(this)}/>
-         <p>{this.state.inputvalue}</p>
-         <button onClick={this.wins.bind(this)}>Compare Answers</button>
-         <p>{this.state.repeat}</p>
-        </div>
      </div>
+     
     
     );
   }

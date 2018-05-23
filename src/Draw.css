@@ -1,16 +1,41 @@
 #canvas {
-    width: 50%;
-
+    column-width: 50%;
+    
 }
 #online {
     width: 50%;
+    column-width: 50%;
 }
 #can{
     position: relative;
+    border-color:#ce75a8;
+    border:solid 5vmin #eee;
+    box-shadow:0 0 5px 0 rgb(206, 117, 168) inset, 0 5px 10px 5px rgb(206, 117, 168);
 }
-.site {
-    background-image: url("https://i.gifer.com/GXi6.gif") cover;
+body {
+    background-image: url("http://bestanimations.com/Books/writing/pen-parts-animated-gif.gif");
 }
 canvas {
     cursor: url(./icon.png), default;
+    background-color: white;
+    opacity: 50%;
+    border: 2px, solid;
+}
+h1 {
+    color: white;  
+   background: url("https://78.media.tumblr.com/cc4e1064d55420fc93953719b781b977/tumblr_ojgknkEpUx1uzwgsuo1_400.gif") no-repeat;
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+	font-size:40px;
+	background-repeat:repeat;
+}
+button {
+    background-color:  #1a8cff; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 30px;
+    margin: 10px;
+}
+.site {
+    column-count: 2;
 }
