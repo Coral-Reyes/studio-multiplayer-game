@@ -19,10 +19,9 @@ export default class WhoseOnline extends Component {
   
   render() {
     var people= this.props.peopleNames;
-    
-    const peopleList = people.map(function(person){
+    const peopleList = people.map(function(person,i){
       return (
-        <ListItem
+        <ListItem key={i}
           primaryText={person.name}
           leftAvatar={<Avatar src={person.img} />}
         />
@@ -31,7 +30,7 @@ export default class WhoseOnline extends Component {
     
     return (
       <div>
-        <List class="container">
+        <List className="container">
         <Subheader>People Online</Subheader>
         {peopleList}
         </List>
